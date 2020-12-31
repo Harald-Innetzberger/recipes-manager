@@ -1,5 +1,5 @@
 <template>
   <div>
-  SETTINGS
+    SETTINGS
   </div>
 </template>
