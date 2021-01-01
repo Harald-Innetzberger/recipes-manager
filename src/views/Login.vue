@@ -1,40 +1,71 @@
 <template>
-  <div id="login">
-    <section>
-      <div class="col1">
-        <h1>Vuegram</h1>
-        <p>
-          Welcome to the
-          <a href="https://savvyapps.com/" target="_blank">Savvy Apps</a> sample
-          social media web app powered by Vue.js and Firebase. Build this
-          project by checking out The Definitive Guide to Getting Started with
-          Vue.js
-        </p>
-      </div>
-      <div class="col2">
-        <form>
-          <h1>Welcome Back</h1>
-          <div>
-            <label for="email1">Email</label>
-            <input type="text" placeholder="you@email.com" id="email1" />
-          </div>
-          <div>
-            <label for="password1">Password</label>
-            <input type="password" placeholder="******" id="password1" />
-          </div>
-          <button class="button">Log In</button>
-          <div class="extras">
-            <a>Forgot Password</a>
-            <a>Create an Account</a>
-          </div>
-        </form>
-      </div>
-    </section>
-  </div>
+  <v-card>
+    <validation-observer ref="observer" v-slot="{ invalid }">
+      <v-form @submit.prevent="handleLogin">
+        <!-- Email -->
+        <validation-provider
+          v-slot="{ errors }"
+          name="email"
+          rules="required|email"
+        >
+          <v-text-field
+            v-model.trim="loginForm.email"
+            label="E-Mail"
+            :error-messages="errors"
+            required
+          ></v-text-field>
+        </validation-provider>
+        <!-- Password -->
+        <validation-provider
+          v-slot="{ errors }"
+          name="password"
+          rules="required"
+        >
+          <v-text-field
+            v-model.trim="loginForm.password"
+            label="Password"
+            :error-messages="errors"
+            required
+          ></v-text-field>
+        </validation-provider>
+        <v-btn :disabled="invalid" color="success" @click="handleLogin">Login</v-btn>
+      </v-form>
+    </validation-observer>
+  </v-card>
 </template>
 
 <script>
-export default {};
+import { mapActions } from "vuex";
+import { extend } from "vee-validate";
+import { required, email } from "vee-validate/dist/rules";
+extend("email", {
+  ...email,
+  message: "Email must be valid"
+});
+extend("required", {
+  ...required,
+  message: "{_field_} can not be empty"
+});
+import { ValidationObserver, ValidationProvider } from "vee-validate";
+export default {
+  components: {
+    ValidationObserver,
+    ValidationProvider
+  },
+  data: () => ({
+    loginForm: {
+      email: "harald.innetzberger@web.de",
+      password: "19Claudia83"
+    }
+  }),
+  methods: {
+    ...mapActions(["login"]),
+    async handleLogin() {
+      const valid = await this.$refs.observer.validate();
+      if (valid) {
+        this.login(this.loginForm);
+      }
+    }
+  }
+};
 </script>
-
-<style lang="scss" scoped></style>

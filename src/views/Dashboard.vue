@@ -1,11 +1,18 @@
 <template>
   <div>
     DASHBOARD
+    <v-btn color="success" @click="handleLogout">Logout</v-btn>
   </div>
 </template>
 
 <script>
-export default {};
+import { mapActions } from "vuex";
+export default {
+  methods: {
+    ...mapActions(["logout"]),
+    handleLogout() {
+      this.logout("logout");
+    }
+  }
+};
 </script>
-
-<style lang="scss" scoped></style>
