@@ -28,7 +28,9 @@
             required
           ></v-text-field>
         </validation-provider>
-        <v-btn :disabled="invalid" color="success" @click="handleLogin">Login</v-btn>
+        <v-btn :disabled="invalid" color="success" @click="handleLogin"
+          >Login</v-btn
+        >
       </v-form>
     </validation-observer>
   </v-card>

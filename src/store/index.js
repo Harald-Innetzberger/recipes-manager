@@ -26,8 +26,7 @@ const store = new Vuex.Store({
     },
     async fetchUserProfile({ commit }, user) {
       // fetch user profile
-      const userProfile = await fb.usersCollection.doc(user.uid).get();
-      console.log(userProfile)
+      const userProfile = await fb.usersCollectionRef.doc(user.uid).get();
       // set user profile in state
       commit("setUserProfile", userProfile.data());
       // change route to dashboard

@@ -20,7 +20,17 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 
 // collection references
-const usersCollection = db.collection("users");
+const usersCollectionRef = db.collection("users");
+const dessertCollectionRef = db.collection("dessert");
+const mainDishCollectionRef = db.collection("main_dish");
+const appetiserCollectionRef = db.collection("appetiser");
 
 // export utils/refs
-export { db, auth, usersCollection };
+export {
+  db,
+  auth,
+  dessertCollectionRef,
+  mainDishCollectionRef,
+  appetiserCollectionRef,
+  usersCollectionRef
+};

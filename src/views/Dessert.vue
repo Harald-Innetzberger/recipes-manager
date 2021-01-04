@@ -1,5 +1,5 @@
 <template>
   <div>
-    SETTINGS
+    Dessert
   </div>
 </template>

@@ -1,28 +1,36 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
-import Dashboard from "../views/Dashboard.vue";
+import MainDish from "../views/MainDish.vue";
 import { auth } from "../firebase";
 
 Vue.use(VueRouter);
 
 const routes = [
   {
-    path: "/",
-    name: "Dashboard",
-    component: Dashboard,
-    meta: {
-      requiresAuth: true
-    }
-  },
-  {
     path: "/login",
     name: "Login",
     component: () => import("../views/Login.vue")
   },
   {
-    path: "/settings",
-    name: "Settings",
-    component: () => import("../views/Settings.vue"),
+    path: "/",
+    name: "Hauptspeisen",
+    component: MainDish,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/appetiser",
+    name: "Vorspeisen",
+    component: () => import("../views/Appetiser.vue"),
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: "/dessert",
+    name: "Nachspeisen",
+    component: () => import("../views/Dessert.vue"),
     meta: {
       requiresAuth: true
     }
