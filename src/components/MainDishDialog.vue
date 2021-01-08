@@ -17,14 +17,14 @@
           </v-toolbar-title>
           <v-spacer />
           <v-toolbar-items>
-            <v-btn icon dark @click="closeDialog('abort')">
+            <v-btn icon dark @click="closeDialog">
               <v-icon>mdi-close</v-icon>
             </v-btn>
           </v-toolbar-items>
         </v-toolbar>
         <v-card-text class="mt-8">
           <validation-observer ref="observer" v-slot="{ invalid }">
-            <v-form @submit.prevent="save">
+            <v-form @submit.prevent="create">
               <!-- Title -->
               <validation-provider
                 v-slot="{ errors }"
@@ -71,19 +71,38 @@
                   auto-grow
                 />
               </validation-provider>
-              <v-btn
-                v-if="recipeId !== ''"
-                :disabled="invalid"
-                color="success"
-                @click="update"
-                >Aktualisieren</v-btn
-              >
-              <v-btn v-else :disabled="invalid" color="success" @click="save"
-                >Speichern</v-btn
-              >
-              <v-btn class="ml-2" color="success" @click="closeDialog('abort')"
-                >Abbrechen</v-btn
-              >
+              <v-row>
+                <v-col cols="12" sm="6" class="caption">
+                  {{
+                    formFields.created_at > 0
+                      ? "Erstellt: " +
+                        new Date(formFields.created_at)
+                          .toLocaleString()
+                          .substr(0, 19)
+                      : ""
+                  }}
+                  {{
+                    formFields.updated_at > 0
+                      ? " - Aktualisiert: " +
+                        new Date(formFields.updated_at)
+                          .toLocaleString()
+                          .substr(0, 19)
+                      : ""
+                  }}
+                </v-col>
+                <v-col cols="12" sm="6" class="text-right">
+                  <v-btn
+                    v-if="recipeId !== ''"
+                    :disabled="invalid"
+                    @click="update"
+                    >Aktualisieren</v-btn
+                  >
+                  <v-btn v-else :disabled="invalid" @click="create"
+                    >Speichern</v-btn
+                  >
+                  <v-btn class="ml-2" @click="closeDialog">Abbrechen</v-btn>
+                </v-col>
+              </v-row>
             </v-form>
           </validation-observer>
         </v-card-text>
@@ -122,7 +141,9 @@ export default {
       title: "",
       ingredients: "",
       preparation: "",
-      created_at: Date.now()
+      // created_at, updated_at in seconds.
+      created_at: 0,
+      updated_at: 0
     }
   }),
   created() {
@@ -130,24 +151,27 @@ export default {
   },
   methods: {
     async getRecipeData() {
-      const docRef = await mainDishCollectionRef.doc(this.recipeId);
-      this.formFields = await docRef
-        .get()
-        .then(function(doc) {
-          return doc.exists ? doc.data() : console.log("No such document!");
-        })
-        .catch(function(error) {
-          console.log("Error getting document:", error);
-        });
-    },
-    adaptDate(ts) {
-      // return ts !== "" ? ts.toDate() : "";
-      console.log(ts);
+      try {
+        const docRef = await mainDishCollectionRef.doc(this.recipeId);
+        const recipeDoc = await docRef.get();
+        this.formFields = recipeDoc.exists
+          ? recipeDoc.data()
+          : this.$store.dispatch("snackbar/setSnack", [
+              "Dokument existiert nicht.",
+              "error"
+            ]);
+      } catch (e) {
+        this.$store.dispatch("snackbar/setSnack", [
+          e.message,
+          "error"
+        ]);
+      }
     },
     async update() {
       const valid = await this.$refs.observer.validate();
       if (valid) {
-        // Update a document.
+        // Update document.
+        this.formFields.updated_at = Date.now();
         const updateDocRef = await mainDishCollectionRef.doc(this.recipeId);
         await updateDocRef
           .update(this.formFields)
@@ -158,20 +182,29 @@ export default {
             // The document probably doesn't exist.
             console.error("Error updating document: ", error);
           });
-        this.closeDialog("update");
+        await this.$store.dispatch("snackbar/setSnack", [
+          "Rezept aktualisiert.",
+          "success"
+        ]);
+        this.closeDialog();
       }
     },
-    async save() {
+    async create() {
       const valid = await this.$refs.observer.validate();
       if (valid) {
         // Add a new document with a firestore auto generated id.
+        this.formFields.created_at = Date.now();
         const newDocRef = await mainDishCollectionRef.doc();
         await newDocRef.set(this.formFields);
-        this.closeDialog("create");
+        await this.$store.dispatch("snackbar/setSnack", [
+          "Rezept erstellt.",
+          "success"
+        ]);
+        this.closeDialog();
       }
     },
-    closeDialog(fromAction) {
-      this.$emit("closeDialog", fromAction);
+    closeDialog() {
+      this.$emit("closeDialog");
     }
   }
 };

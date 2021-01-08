@@ -1,6 +1,9 @@
 <template>
   <div id="app">
     <v-app>
+      <!-- Global Snack Bar -->
+      <snack-bar />
+      <!-- left navigation menu -->
       <v-navigation-drawer v-model="drawer" app>
         <v-list-item>
           <v-list-item-content>
@@ -29,12 +32,16 @@
           </v-list-item>
         </v-list>
       </v-navigation-drawer>
-      <v-app-bar app>
+      <!-- top navigation menu -->
+      <v-app-bar app class="primary" dark>
         <v-app-bar-nav-icon @click="drawer = !drawer" />
         <v-toolbar-title>Rezepte Manager</v-toolbar-title>
         <v-spacer />
-        <v-btn v-if="auth.currentUser" color="success" @click="handleLogout"
-          >Logout</v-btn
+        <!-- User Menu -->
+        <user-info v-if="auth.currentUser" />
+        <!-- Logout Button -->
+        <v-btn v-if="auth.currentUser" @click="handleLogout" icon title="Logout"
+          ><v-icon>mdi-logout-variant</v-icon></v-btn
         >
       </v-app-bar>
       <v-main>
@@ -43,10 +50,9 @@
           <router-view />
         </v-container>
       </v-main>
-
       <v-footer padless>
-        <v-col class="text-center" cols="12">
-          {{ new Date().getFullYear() }} — <strong>Rezepte Manager</strong>
+        <v-col class="text-right" cols="12">
+          {{ new Date().getFullYear() }} — Rezepte Manager
           {{ "v." + require("../package").version }}
         </v-col>
       </v-footer>
@@ -55,9 +61,15 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
+import { mapState } from "vuex";
+import UserInfo from "./components/UserInfo";
 import { auth } from "./firebase";
+import SnackBar from "./components/SnackBar";
 export default {
+  components: {
+    SnackBar,
+    UserInfo
+  },
   data: () => ({
     drawer: null,
     auth: auth,
@@ -67,10 +79,12 @@ export default {
       { title: "Nachspeisen", icon: "mdi-food-apple", link: "dessert" }
     ]
   }),
+  computed: {
+    ...mapState(["userProfile"])
+  },
   methods: {
-    ...mapActions(["logout"]),
     handleLogout() {
-      this.logout("logout");
+      this.$store.dispatch("logout");
     }
   }
 };

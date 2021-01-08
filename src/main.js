@@ -8,7 +8,7 @@ import { auth } from "./firebase";
 Vue.config.productionTip = false;
 
 let app;
-auth.onAuthStateChanged(() => {
+auth.onAuthStateChanged(user => {
   if (!app) {
     app = new Vue({
       vuetify,
@@ -16,5 +16,10 @@ auth.onAuthStateChanged(() => {
       store,
       render: h => h(App)
     }).$mount("#app");
+  }
+
+  // Hold user in store on page refresh
+  if (user) {
+    store.dispatch("user/fetchUserProfile", user);
   }
 });

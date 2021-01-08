@@ -2,40 +2,53 @@ import Vue from "vue";
 import Vuex from "vuex";
 import * as fb from "../firebase";
 import router from "../router";
+import snackbar from "./modules/snackbar";
+import user from "./modules/user";
 
 Vue.use(Vuex);
 
 const store = new Vuex.Store({
-  state: {
-    userProfile: {}
-  },
-  mutations: {
-    setUserProfile(state, val) {
-      state.userProfile = val;
-    }
+  modules: {
+    snackbar,
+    user
   },
   actions: {
+    // Sign Up
+    async signUp({ dispatch }, formData) {
+      try {
+        const { user } = await fb.auth.createUserWithEmailAndPassword(
+          formData.email,
+          formData.password
+        );
+        // create user profile in usersCollection
+        await fb.usersCollectionRef.doc(user.uid).set({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          location: formData.location
+        });
+        dispatch("snackbar/setSnack", ["Account erstellt.", "success"]);
+        dispatch("user/fetchUserProfile", user, { root: true });
+      } catch (e) {
+        dispatch("snackbar/setSnack", [e.message, "error"]);
+      }
+    },
+    // Login
     async login({ dispatch }, formData) {
-      // sign user in
-      const { user } = await fb.auth.signInWithEmailAndPassword(
-        formData.email,
-        formData.password
-      );
-      // fetch user profile and set in state
-      dispatch("fetchUserProfile", user);
+      try {
+        const { user } = await fb.auth.signInWithEmailAndPassword(
+          formData.email,
+          formData.password
+        );
+        dispatch("snackbar/setSnack", ["Erfolgreich angemeldet.", "success"]);
+        dispatch("user/fetchUserProfile", user, { root: true });
+      } catch (e) {
+        dispatch("snackbar/setSnack", [e.message, "error"]);
+      }
     },
-    async fetchUserProfile({ commit }, user) {
-      // fetch user profile
-      const userProfile = await fb.usersCollectionRef.doc(user.uid).get();
-      // set user profile in state
-      commit("setUserProfile", userProfile.data());
-      // change route to dashboard
-      router.push("/");
-    },
+    // Logout
     async logout({ commit }) {
       await fb.auth.signOut();
-      // clear user profile and redirect to login page ...
-      commit("setUserProfile", {});
+      commit("user/SET_USER_PROFILE", {}, { root: true });
       router.push("/login");
     }
   }
